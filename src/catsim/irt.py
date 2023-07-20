@@ -1,7 +1,7 @@
 import math
 from math import pi
 from typing import List
-
+import numpy as np
 import numexpr
 import numpy
 
@@ -57,6 +57,42 @@ def detect_model(items: numpy.ndarray) -> int:
     if len(set(a)) > 1:
         return 2
     return 1
+
+
+
+
+def pcm_hpc(theta: float, items: numpy.ndarray) -> numpy.ndarray:
+    '''
+    Implementation of :py:func:`pcm` using :py:mod:`numpy` and :py:mod:`numexpr` in which the characteristic
+    function for all items in a `numpy.ndarray` are computed at once
+
+    :param theta: the individual's ability value.
+    :param items: array containing the item difficulty followed 3 rasch-andrich thresholds.
+    :returns: a 2-d array of all item characteristic functions, given the current ``theta``.
+    This array has shape (n_items, 4).
+    '''
+    b = items[:, 0] # item difficulty
+    r = items[:, 1:4] # rasch-andrich thresholds
+    output = numpy.zeros((items.shape[0], 4))
+
+    for i in range(4):
+        r_sum = numpy.sum(r[:, :i], axis=1)
+        log_num = (i * theta - b + r_sum).astype(float)
+        # numerator = numexpr.evaluate("exp(i * theta - (b + r_sum))")
+        numerator = numpy.exp(log_num)
+        den_array = numpy.zeros_like(numerator)
+        
+        for k in range(4):
+            r_sum_k = numpy.sum(r[:, :k], axis=1)
+            log_den = (k * theta - b + r_sum_k).astype(float)
+            den_array += numpy.exp(log_den)
+            
+        output[:, i] = numerator / den_array
+
+    return output
+
+
+
 
 
 def icc_hpc(theta: float, items: numpy.ndarray) -> numpy.ndarray:
@@ -294,6 +330,22 @@ def log_likelihood(
     ps = icc_hpc(est_theta, administered_items)
     ll = numexpr.evaluate("sum(where(response_vector, log(ps), log(1 - ps)))")
 
+    return ll
+
+def pcm_log_likelihood_hand(est_theta: float, response_vector: List[int], administered_items: numpy.ndarray):
+    response_vector = np.array(response_vector)
+    administered_items = np.array(administered_items, dtype=object)
+
+    if len(response_vector) != administered_items.shape[0]:
+        raise ValueError(
+            "Response vector and administered items must have the same number of items"
+        )
+
+    ps = pcm_hpc(est_theta, administered_items) # characteristic functions
+    # ll = numexpr.evaluate("sum(where(response_vector, log(ps), log(1 - ps)))")
+    ll = 0
+    for i in range(len(response_vector)):
+        ll += math.log(ps[i, response_vector[i]])
     return ll
 
 

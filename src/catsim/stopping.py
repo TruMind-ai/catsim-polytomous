@@ -78,3 +78,4 @@ class MinErrorStopper(Stopper):
             return False
 
         return irt.see(theta, administered_items) < self._min_error
+        # return len(administered_items) >= 10

@@ -29,6 +29,7 @@ class NumericalSearchEstimator(Estimator):
         "brent",
         "bounded",
         "golden2",
+        "partial_credit",
     ]
     golden_ratio = (1 + 5**0.5) / 2
 
@@ -40,7 +41,7 @@ class NumericalSearchEstimator(Estimator):
         precision: int = 6,
         dodd: bool = True,
         verbose: bool = False,
-        method="bounded",
+        method: str = "bounded",
     ):
         super().__init__(verbose)
 
@@ -64,7 +65,7 @@ class NumericalSearchEstimator(Estimator):
         index: int = None,
         items: numpy.ndarray = None,
         administered_items: List[int] = None,
-        response_vector: List[bool] = None,
+        response_vector: List = None,
         est_theta: float = None,
         **kwargs
     ) -> float:
@@ -124,8 +125,12 @@ class NumericalSearchEstimator(Estimator):
 
         # these bounds are computed as a the minimum and maximum item difficulties
         # in the bank...
-        lower_bound = min(items[:, 1])
-        upper_bound = max(items[:, 1])
+        if self.__search_method == "partial_credit":
+            lower_bound = min(items[:, 0])
+            upper_bound = max(items[:, 0])
+        else:
+            lower_bound = min(items[:, 1])
+            upper_bound = max(items[:, 1])
 
         # ... plus an arbitrary error margin
         margin = (upper_bound - lower_bound) / 3
@@ -155,6 +160,11 @@ class NumericalSearchEstimator(Estimator):
             )
             self._evaluations = res.nfev
             candidate_theta = res.x
+        elif self.__search_method == "partial_credit":
+            candidate_theta = self._solve_partial_credit(
+                upper_bound, lower_bound, response_vector, items[administered_items]
+            )
+
 
         if self._verbose:
             print("{0} evaluations".format(self._evaluations))
@@ -331,6 +341,59 @@ class NumericalSearchEstimator(Estimator):
                     "\t\tTheta: {0}, LL: {1}".format((b + a) / 2, max(left_side_ll, right_side_ll))
                 )
         return (b + a) / 2
+    
+    def _solve_partial_credit(
+        self,
+        b: float,
+        a: float,
+        response_vector: List[int],
+        item_params: numpy.ndarray,
+    ):
+        """Uses the partial credit model to find the ability that maximizes the log-likelihood of the given response vector and item parameters
+
+        :param upper_bound: the upper bound to search for the ability, in the ability/difficulty scale
+        :type upper_bound: float
+        :param lower_bound: the lower bound to search for the ability, in the ability/difficulty scale
+        :type lower_bound: float
+        :param response_vector: the responses given to the answered items
+        :type response_vector: List[bool]
+        :param item_params: the parameter matrix of the answered items
+        :type item_params: numpy.ndarray
+        :return: the estimated ability
+        :rtype: float
+        """
+        # Initialize error and candidate_theta
+        error = float("inf")
+        candidate_theta = -1
+        while error >= self._epsilon:
+            self._evaluations += 2
+            m = (a + b) / 2
+            c = m - (self._epsilon / 2)
+            d = m + (self._epsilon / 2)
+            left_side_ll = irt.pcm_log_likelihood_hand(c, response_vector, item_params)
+            right_side_ll = irt.pcm_log_likelihood_hand(d, response_vector, item_params)
+            # print(c, d)
+            # print(right_side_ll, left_side_ll)
+
+            if left_side_ll >= right_side_ll:
+                b = d
+            else:
+                a = c
+
+            assert a <= c <= d <= b
+
+            candidate_theta = (b + a) / 2
+
+            error = abs(b - a)
+            error /= 2
+
+            if self._verbose:
+                print(
+                    "\t\tTheta: {0}, LL: {1}".format(
+                        candidate_theta, max(left_side_ll, right_side_ll)
+                    )
+                )
+        return candidate_theta
 
     @property
     def dodd(self) -> bool:
