@@ -333,9 +333,18 @@ def log_likelihood(
     return ll
 
 def pcm_log_likelihood_hand(est_theta: float, response_vector: List[int], administered_items: numpy.ndarray):
-    response_vector = np.array(response_vector)
-    administered_items = np.array(administered_items, dtype=object)
+    '''
+    Calculates the log-likelihood of an estimated ability, given a
+    response vector and the parameters of the answered items.
 
+    :param est_theta: estimated ability value.
+    :param response_vector: a Boolean list containing the response vector.
+    :param administered_items: a numpy array containing the parameters of the answered items.
+    :returns: log-likelihood of a given ability value, given the responses to the administered items.
+    '''
+    response_vector = np.array(response_vector)
+    # take out the first column of the administered items, which is the item number
+    administered_items = np.array(administered_items, dtype=object)[:, 1:]
     if len(response_vector) != administered_items.shape[0]:
         raise ValueError(
             "Response vector and administered items must have the same number of items"

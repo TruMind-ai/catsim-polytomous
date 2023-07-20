@@ -125,12 +125,8 @@ class NumericalSearchEstimator(Estimator):
 
         # these bounds are computed as a the minimum and maximum item difficulties
         # in the bank...
-        if self.__search_method == "partial_credit":
-            lower_bound = min(items[:, 0])
-            upper_bound = max(items[:, 0])
-        else:
-            lower_bound = min(items[:, 1])
-            upper_bound = max(items[:, 1])
+        lower_bound = min(items[:, 1])
+        upper_bound = max(items[:, 1])
 
         # ... plus an arbitrary error margin
         margin = (upper_bound - lower_bound) / 3
