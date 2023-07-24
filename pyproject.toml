@@ -3,9 +3,9 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-urls = { homepage = "https://douglasrizzo.com.br/catsim" }
 authors = [
     { name = "Douglas De Rizzo Meneghetti", email = "douglasrizzo@gmail.com" },
+    {name = "Vaishak Krishna", email="vaishak.krishna@gmail.com" },
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -19,9 +19,9 @@ classifiers = [
     "Topic :: Education :: Testing",
     "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
 ]
-name = "catsim"
-version = "0.17.2"
-description = "Computerized Adaptive Testing Simulator"
+name = "catsim-polytomous"
+version = "0.1.0"
+description = "Computerized Adaptive Testing Simulator w/ support for polytomous items using the Partial Credit Model (PCM)"
 dependencies = [
     "scipy",
     "numexpr",

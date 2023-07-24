@@ -6,7 +6,7 @@ from typing import List, Union
 
 import numpy
 
-from catsim import irt
+from catsim_poly import irt
 
 
 def dodd(theta: float, items: numpy.ndarray, correct: bool) -> float:

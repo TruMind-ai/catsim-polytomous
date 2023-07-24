@@ -4,8 +4,8 @@ from typing import List
 import numpy
 from scipy.optimize import minimize_scalar
 
-from catsim import cat, irt
-from catsim.simulation import Estimator
+from catsim_poly import cat, irt
+from catsim_poly.simulation import Estimator
 
 
 class NumericalSearchEstimator(Estimator):

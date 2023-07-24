@@ -1,13 +1,13 @@
 import random
 from sklearn.cluster import KMeans
 
-from catsim import plot
-from catsim.cat import generate_item_bank
-from catsim.estimation import *
-from catsim.initialization import *
-from catsim.selection import *
-from catsim.simulation import Simulator
-from catsim.stopping import MaxItemStopper, MinErrorStopper
+from catsim_poly import plot
+from catsim_poly.cat import generate_item_bank
+from catsim_poly.estimation import *
+from catsim_poly.initialization import *
+from catsim_poly.selection import *
+from catsim_poly.simulation import Simulator
+from catsim_poly.stopping import MaxItemStopper, MinErrorStopper
 
 
 def one_simulation(items, examinees, initializer, selector, estimator, stopper):

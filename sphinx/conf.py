@@ -23,7 +23,7 @@ import sphinx_rtd_theme
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath(".."))
 
-from catsim import __version__
+from catsim_poly import __version__
 
 filenames = ["readme_head.md", "readme_body.md"]
 with open("../README.md", "w") as outfile:

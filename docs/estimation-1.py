@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from catsim.simulation import Simulator
-from catsim.initialization import FixedPointInitializer
-from catsim.selection import MaxInfoSelector
-from catsim.estimation import NumericalSearchEstimator
-from catsim.stopping import MaxItemStopper
-from catsim.cat import generate_item_bank
+from catsim_poly.simulation import Simulator
+from catsim_poly.initialization import FixedPointInitializer
+from catsim_poly.selection import MaxInfoSelector
+from catsim_poly.estimation import NumericalSearchEstimator
+from catsim_poly.stopping import MaxItemStopper
+from catsim_poly.cat import generate_item_bank
 
 items = generate_item_bank(300)
 examinees = 100

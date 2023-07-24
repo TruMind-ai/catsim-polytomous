@@ -1,18 +1,18 @@
 ## Using catsim objects outside of a Simulator
 # this function generates an item bank, in case the user cannot provide one
-from catsim.cat import generate_item_bank
+from catsim_poly.cat import generate_item_bank
 # simulation package contains the Simulator and all abstract classes
-from catsim.simulation import *
+from catsim_poly.simulation import *
 # initialization package contains different initial proficiency estimation strategies
-from catsim.initialization import *
+from catsim_poly.initialization import *
 # selection package contains different item selection strategies
-from catsim.selection import *
+from catsim_poly.selection import *
 # estimation package contains different proficiency estimation methods
-from catsim.estimation import *
+from catsim_poly.estimation import *
 # stopping package contains different stopping criteria for the CAT
-from catsim.stopping import *
-import catsim.plot as catplot
-from catsim.irt import icc
+from catsim_poly.stopping import *
+import catsim_poly.plot as catplot
+from catsim_poly.irt import icc
 import random
 
 import matplotlib.pyplot as plt

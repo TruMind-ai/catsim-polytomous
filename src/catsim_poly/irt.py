@@ -69,24 +69,24 @@ def pcm_hpc(theta: float, items: numpy.ndarray) -> numpy.ndarray:
     :param theta: the individual's ability value.
     :param items: array containing the item difficulty followed 3 rasch-andrich thresholds.
     :returns: a 2-d array of all item characteristic functions, given the current ``theta``.
-    This array has shape (n_items, 4).
+    This array has shape (n_items, n_thresholds).
     '''
     b = items[:, 0] # item difficulty
-    r = items[:, 1:4] # rasch-andrich thresholds
-    output = numpy.zeros((items.shape[0], 4))
+    r = items[:, 1:] # rasch-andrich thresholds
+    # output = numpy.zeros((items.shape[0], ))
+    output = numpy.zeros((items.shape[0], items.shape[1]))
 
-    for i in range(4):
+    for i in range(items.shape[1]):
         r_sum = numpy.sum(r[:, :i], axis=1)
         log_num = (i * theta - b + r_sum).astype(float)
         # numerator = numexpr.evaluate("exp(i * theta - (b + r_sum))")
         numerator = numpy.exp(log_num)
         den_array = numpy.zeros_like(numerator)
         
-        for k in range(4):
+        for k in range(items.shape[1]):
             r_sum_k = numpy.sum(r[:, :k], axis=1)
             log_den = (k * theta - b + r_sum_k).astype(float)
             den_array += numpy.exp(log_den)
-            
         output[:, i] = numerator / den_array
 
     return output

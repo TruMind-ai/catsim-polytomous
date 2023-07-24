@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from catsim.estimation import *
-from catsim.cat import generate_item_bank
+from catsim_poly.estimation import *
+from catsim_poly.cat import generate_item_bank
 
 test_size = 20
 items = generate_item_bank(20)
