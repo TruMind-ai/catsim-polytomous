@@ -111,7 +111,7 @@ class Selector(Simulable, metaclass=ABCMeta):
         return [x for x in item_indices if x not in administered_item_indices]
 
     @staticmethod
-    def _sort_by_info(items: numpy.ndarray, est_theta: float) -> list:
+    def _sort_by_info(items: numpy.ndarray, est_theta: float, poly=True) -> list:
         """Sort items by their information value, given a ability value
 
         :param items: an item parameter matrix
@@ -125,6 +125,10 @@ class Selector(Simulable, metaclass=ABCMeta):
             # when the logistic model has the number of parameters <= 2,
             # all items have highest information where theta = b
             ordered_items = Selector._sort_by_b(items, est_theta)
+        elif poly:
+            # when the model is polytomous, use the polytomous information function
+            ordered_items = [x for x in (-irt.inf_poly(est_theta, items)).argsort()]
+
         else:
             # else, sort item indexes by their information value descending and remove indexes of administered items
             ordered_items = [x for x in (-irt.inf_hpc(est_theta, items)).argsort()]

@@ -57,6 +57,7 @@ class MinErrorStopper(Stopper):
         index: int = None,
         administered_items: numpy.ndarray = None,
         theta: float = None,
+        polytomous: bool = True,
         **kwargs
     ) -> bool:
         """Checks whether the test reached its stopping criterion
@@ -77,5 +78,10 @@ class MinErrorStopper(Stopper):
         if theta is None:
             return False
 
-        return irt.see(theta, administered_items) < self._min_error
+        if polytomous:
+            see = irt.see_poly(theta, administered_items)
+            print("stderr:", see)
+            return see < self._min_error
+        else:
+            return irt.see(theta, administered_items) < self._min_error
         # return len(administered_items) >= 10

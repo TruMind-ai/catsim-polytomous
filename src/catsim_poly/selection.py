@@ -32,6 +32,7 @@ class MaxInfoSelector(Selector):
         items: numpy.ndarray = None,
         administered_items: List[int] = None,
         est_theta: float = None,
+        poly: bool = True,
         **kwargs
     ) -> Union[int, None]:
         """Returns the index of the next item to be administered.
@@ -58,7 +59,7 @@ class MaxInfoSelector(Selector):
         assert est_theta is not None
 
         # sort items by their information value
-        ordered_items = self._sort_by_info(items, est_theta)
+        ordered_items = self._sort_by_info(items, est_theta, poly=poly)
         # remove administered ones
         valid_indexes = self._get_non_administered(ordered_items, administered_items)
 

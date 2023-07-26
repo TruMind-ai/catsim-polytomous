@@ -366,8 +366,8 @@ class NumericalSearchEstimator(Estimator):
             m = (a + b) / 2
             c = m - (self._epsilon / 2)
             d = m + (self._epsilon / 2)
-            left_side_ll = irt.pcm_log_likelihood_hand(c, response_vector, item_params)
-            right_side_ll = irt.pcm_log_likelihood_hand(d, response_vector, item_params)
+            left_side_ll = irt.pcm_log_likelihood(c, response_vector, item_params)
+            right_side_ll = irt.pcm_log_likelihood(d, response_vector, item_params)
             # print(c, d)
             # print(right_side_ll, left_side_ll)
 

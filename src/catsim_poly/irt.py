@@ -61,16 +61,19 @@ def detect_model(items: numpy.ndarray) -> int:
 
 
 
-def pcm_hpc(theta: float, items: numpy.ndarray) -> numpy.ndarray:
+def pcm(theta: float, items: numpy.ndarray) -> numpy.ndarray:
     '''
     Implementation of :py:func:`pcm` using :py:mod:`numpy` and :py:mod:`numexpr` in which the characteristic
-    function for all items in a `numpy.ndarray` are computed at once
+    function is computed for a polytomous item bank. Uses the Partial-Credit Model (PCM) to compute the
+    characteristic function of each item.
 
     :param theta: the individual's ability value.
     :param items: array containing the item difficulty followed 3 rasch-andrich thresholds.
     :returns: a 2-d array of all item characteristic functions, given the current ``theta``.
     This array has shape (n_items, n_thresholds).
     '''
+    # remove the index param
+    items = items[:, 1:]
     b = items[:, 0] # item difficulty
     r = items[:, 1:] # rasch-andrich thresholds
     # output = numpy.zeros((items.shape[0], ))
@@ -119,6 +122,33 @@ def inf_hpc(theta: float, items: numpy.ndarray):
 
     return numexpr.evaluate("(a ** 2 * (p - c) ** 2 * (d - p) ** 2) / ((d - c) ** 2 * p * (1 - p))")
 
+def inf_poly(theta: float, items: numpy.ndarray):
+    """Implementation of :py:func:`inf` using :py:mod:`numpy` and :py:mod:`numexpr` 
+
+    :param theta: the individual's ability value.
+    :param items: array whose columns are the item index, difficulty, and n rasch-andrich thresholds.
+    :returns: an array of all item information values, given the current ``theta``"""
+    
+    # compute characteristic functions using the partial-credit model
+    p = pcm(theta, items)
+    # remove index column
+    items = items[:, 1:]
+
+    infos = []
+
+    b = items[:, 0] # item difficulty
+    r = items[:, 1:] # rasch-andrich thresholds
+    for i in range(p.shape[0]):
+        sum_1, sum_2 = 0, 0
+        for k in range(p.shape[1]):
+            sum_1 += k**2 * p[i, k]
+
+        for k in range(p.shape[1]):
+            sum_2 += k * p[i, k]
+
+        cur_info = sum_1 - sum_2**2
+        infos.append(cur_info)
+    return np.array(infos)
 
 def inf(theta: float, a: float, b: float, c: float = 0, d: float = 1) -> float:
     """Calculates the information value of an item using the Item Response Theory
@@ -166,6 +196,21 @@ def test_info(theta: float, items: numpy.ndarray) -> float:
     """
     return float(numpy.sum(inf_hpc(theta, items)))
 
+def test_info_poly(theta: float, items: numpy.ndarray) -> float:
+    """Computes the test information of a test at a specific :math:`\\theta` value [Ayala2009]_:
+
+    .. math:: I(\\theta) = \\sum_{j \\in J} I_j(\\theta)
+
+    where :math:`J` is the set of items in the test and :math:`I_j(\\theta)` is the
+    item information of :math:`j` at aspecific :math:`\\theta` value.
+
+    :param theta: a ability value.
+    :param items: a matrix containing item parameters.
+    :returns: the test information at `theta` for a test represented by `items`.
+    """
+    return float(numpy.sum(inf_poly(theta, items)))
+
+
 
 def var(theta: float, items: numpy.ndarray) -> float:
     """Computes the variance (:math:`Var`) of the ability estimate of a test at a
@@ -184,6 +229,28 @@ def var(theta: float, items: numpy.ndarray) -> float:
     except ZeroDivisionError:
         return float("-inf")
 
+def var_poly(theta: float, items: numpy.ndarray) -> float:
+    try:
+        return 1 / test_info_poly(theta, items)
+    except ZeroDivisionError:
+        return float("-inf")
+    
+def see_poly(theta: float, items: numpy.ndarray) -> float:
+    """Computes the standard error of estimation (:math:`SEE`) of a polytomous 
+    test at a specific :math:`\\theta` value [Ayala2009]_:
+
+    .. math:: SEE = \\sqrt{\\frac{1}{I(\\theta)}}
+
+    where :math:`I(\\theta)` is the test information (see :py:func:`test_info`).
+
+    :param theta: a ability value.
+    :param items: a matrix containing item parameters.
+    :returns: the standard error of estimation at `theta` for a test represented by `items`.
+    """
+    try:
+        return math.sqrt(var_poly(theta, items))
+    except ValueError:
+        return float("inf")
 
 def see(theta: float, items: numpy.ndarray) -> float:
     """Computes the standard error of estimation (:math:`SEE`) of a test at a
@@ -332,7 +399,7 @@ def log_likelihood(
 
     return ll
 
-def pcm_log_likelihood_hand(est_theta: float, response_vector: List[int], administered_items: numpy.ndarray):
+def pcm_log_likelihood(est_theta: float, response_vector: List[int], administered_items: numpy.ndarray):
     '''
     Calculates the log-likelihood of an estimated ability, given a
     response vector and the parameters of the answered items.
@@ -343,14 +410,14 @@ def pcm_log_likelihood_hand(est_theta: float, response_vector: List[int], admini
     :returns: log-likelihood of a given ability value, given the responses to the administered items.
     '''
     response_vector = np.array(response_vector)
-    # take out the first column of the administered items, which is the item number
-    administered_items = np.array(administered_items, dtype=object)[:, 1:]
+    # # take out the first column of the administered items, which is the item number
+    # administered_items = np.array(administered_items, dtype=object)[:, 1:]
     if len(response_vector) != administered_items.shape[0]:
         raise ValueError(
             "Response vector and administered items must have the same number of items"
         )
 
-    ps = pcm_hpc(est_theta, administered_items) # characteristic functions
+    ps = pcm(est_theta, administered_items) # characteristic functions
     # ll = numexpr.evaluate("sum(where(response_vector, log(ps), log(1 - ps)))")
     ll = 0
     for i in range(len(response_vector)):
